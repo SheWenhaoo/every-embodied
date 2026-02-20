@@ -14,7 +14,7 @@
   # Every-Embodied : Zero to Hero in Embodied AI
 
   <p align="center">
-    📌 <a href="https://datawhaler.feishu.cn/wiki/ANwTwcmK1iydqZkBrpRcia3nnlf">在线阅读 (Read Online)</a> · ✨ <a href="#-学习地图">学习地图 (Learning Map)</a> · 🤖 <a href="#-最新亮点">前沿复现 (SOTA)</a>
+    📌 <a href="https://datawhaler.feishu.cn/wiki/ANwTwcmK1iydqZkBrpRcia3nnlf">在线阅读 (Read Online)</a> · ✨ <a href="##-学习地图">学习地图 (Learning Map)</a> · 🤖 <a href="##-📽️视频教程">前沿复现 (SOTA)</a>
   </p>
 
   <p align="center">
@@ -139,6 +139,8 @@
 - **教育工作者与社区组织者**：希望基于开源教程组织课程、读书会、训练营和项目共创
 
 ---
+
+## 学习地图
 
   本教程分为三个阶段，带你逐层深入具身智能的世界：
 

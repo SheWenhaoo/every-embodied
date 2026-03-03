@@ -32,15 +32,17 @@ conda create -n vlnce38 python=3.8
 conda activate vlnce38
 
 # 安装 PyTorch (1.9.1+cu111)
-pip install torch==1.9.1+cu111 torchvision==0.10.1+cu111 -f [https://download.pytorch.org/whl/torch_stable.html](https://download.pytorch.org/whl/torch_stable.html)
+pip install torch==1.9.1+cu111 torchvision==0.10.1+cu111 \
+-f https://download.pytorch.org/whl/torch_stable.html \
+-i https://mirrors.cloud.tencent.com/pypi/simple
 ```
 
 ### 1.2 安装项目依赖
 
-下载 `requirements.txt`：[百度网盘](https://pan.baidu.com/s/14HF1YRknfD6V70iR5dJKNQ) (提取码: `nrjs`) 
+下载 `requirements.txt`：[百度网盘](https://pan.baidu.com/s/1PU1pm596QtL8ZNG08602Dg) (提取码: `8je8`) 
 
 ```bash
-python -m pip install "pip<24.1"
+pip install "pip<24.1" setuptools==65.5.0 wheel==0.38.4
 python -m pip install -r requirements.txt
 ```
 
@@ -53,10 +55,43 @@ python -m pip install -r requirements.txt
 conda install habitat-sim-0.1.7-py3.8_headless_linux_856d4b08c1a2632626bf0d205bf46471a99502b7.tar.bz2
 
 # 克隆并安装 habitat-lab
-git clone --branch v0.1.7 https://github.com/facebookresearch/habitat-lab.git
+git clone --branch v0.1.7 https://gh-proxy.org/https://github.com/facebookresearch/habitat-lab.git
 cd habitat-lab-0.1.7
 pip install -e .
 ```
+### 1.4 云服务器环境依赖修复 (选做)
+
+在云端容器或精简版 Linux 系统中运行 Habitat 仿真器时，通常会遇到缺少图形渲染库（`OpenGL/EGL` 报错）以及 C++ 底层库版本冲突（`CXXABI` 报错）等问题。请依次执行以下步骤一次性解决：
+
+**1. 安装系统级图形渲染依赖(解决 缺失libEGL库 报错)**
+
+Habitat 的底层三维引擎 Magnum 需要以下库才能正常初始化：
+
+```bash
+apt-get update
+apt-get install -y libopengl0 libgl1-mesa-glx libglib2.0-0 libegl1
+```
+
+**2. 升级系统级 C++ 标准库 (解决 CXXABI 报错)**
+
+```bash
+# 安装管理 PPA 源的工具
+apt-get install -y software-properties-common
+
+# 添加 ubuntu-toolchain-r 测试源
+add-apt-repository ppa:ubuntu-toolchain-r/test -y
+apt-get update
+
+# 仅升级系统的 C++ 标准库
+apt-get install --only-upgrade libstdc++6 -y
+```
+
+### 1.5 下载ETPnav-main原始代码
+```bash
+# 克隆仓库
+git clone https://gh-proxy.org/https://github.com/MarSaKi/ETPNav.git
+```
+
 
 ## 2. 数据集下载
 
@@ -82,7 +117,7 @@ pip install -e .
 | --- | --- | --- |
 | **R2R_VLNCE_v1-2_preprocessed** | [Google Drive](https://drive.google.com/file/d/1j9sQ0w4wFYSafh42U8VCuKTwMrnrsV6z/view) | `data/datasets` |
 | **R2R_VLNCE_v1-2_preprocessed_BERTidx** | [百度网盘](https://pan.baidu.com/s/1Sz7Q7iXcLV7ToQ0FeZmHIg) (提取码: `88yy`) | `data/datasets` |
-| **RxR** | [百度网盘](https://pan.baidu.com/s/1bcgUSQ4WDawxkrpj9FFU9w) (提取码: `eqph`) | `data/datasets` |
+| **RxR** | [百度网盘](https://pan.baidu.com/s/1WZwKwdBt0ofdmuTKmWjHSQ) (提取码: `g317`) | `data/datasets` |
 
 ### 2.3 连通图 (Connectivity Graphs)
 

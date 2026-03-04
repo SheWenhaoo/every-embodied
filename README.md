@@ -49,7 +49,7 @@
 
   ```bash
   # 1. 克隆仓库
-  git clone https://github.com/datawhalechina/every-embodied.git
+  git clone --depth 1 https://github.com/datawhalechina/every-embodied.git
   cd every-embodied
   
   # 2. 创建并激活 Conda 环境

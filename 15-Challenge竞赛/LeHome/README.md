@@ -26,17 +26,8 @@
 - 当前远端 `origin/main`：`32b53595da504880592a79ed5e362ad0ba0fac6b`
 - 已成功跑通一轮 ACT 评测
 - 已成功跑通一轮 DP 评测，并且 `--policy_num_inference_steps 1` 生效
-
-本地已验证的输出视频：
-
-- ACT:
-  - `/root/gpufree-data/lehome-eval-outputs/repro_videos_act/failure/episode0_observation_images_top_rgb.mp4`
-  - `/root/gpufree-data/lehome-eval-outputs/repro_videos_act/failure/episode0_observation_images_left_rgb.mp4`
-  - `/root/gpufree-data/lehome-eval-outputs/repro_videos_act/failure/episode0_observation_images_right_rgb.mp4`
-- DP:
-  - `/root/gpufree-data/lehome-eval-outputs/repro_videos_dp/failure/episode0_observation_images_top_rgb.mp4`
-  - `/root/gpufree-data/lehome-eval-outputs/repro_videos_dp/failure/episode0_observation_images_left_rgb.mp4`
-  - `/root/gpufree-data/lehome-eval-outputs/repro_videos_dp/failure/episode0_observation_images_right_rgb.mp4`
+- 旧的失败评测视频已清理，后续统一输出到：
+  - `/root/gpufree-data/lehome-outputs/eval/`
 
 说明：
 
@@ -169,6 +160,13 @@ lerobot-train \
   2>&1 | tee /root/gpufree-data/lehome-outputs/train/act_top_long/train.log
 ```
 
+这条命令做了两件事：
+
+1. 用教程专用 YAML 启动训练。
+2. 用 `tee` 把终端日志同时保存到 `train.log`，方便后面分析 loss 和画图。
+
+对于初学者，建议第一次不要改命令行，而是先读懂 YAML 里每个字段的作用，再只改一两个参数做实验。
+
 ## 3.5 训练 DP
 
 同样建议使用教程专用配置：
@@ -183,6 +181,14 @@ lerobot-train \
   --config_path /root/gpufree-data/every-embodied/15-Challenge竞赛/LeHome/resources/configs/train_dp_every_embodied.yaml \
   2>&1 | tee /root/gpufree-data/lehome-outputs/train/dp_top_long/train.log
 ```
+
+DP 相比 ACT 通常更慢、更吃资源，所以教程配置里把：
+
+- `batch_size` 调小到 `8`
+- `steps` 拉长到 `90000`
+- `log_freq` 调细到 `100`
+
+这样更符合 Diffusion Policy 的常见训练习惯，也更方便观察收敛过程。
 
 ## 3.6 评测 ACT
 
@@ -206,7 +212,7 @@ CPU 评测时建议显式限制 diffusion 推理步数：
 ```bash
 python -m scripts.eval \
   --policy_type lerobot \
-  --policy_path outputs/train/dp/checkpoints/last/pretrained_model \
+  --policy_path /root/gpufree-data/lehome-outputs/train/dp_top_long/checkpoints/last/pretrained_model \
   --dataset_root Datasets/example/top_long_merged \
   --garment_type top_long \
   --num_episodes 2 \
@@ -225,31 +231,136 @@ python -m scripts.eval \
 - `dataset.root`
   - 训练数据目录。
   - baseline 默认使用 `Datasets/example/top_long_merged`。
+  - 这样设计的原因是官方基线配置本身就是指向 `*_merged`，初学者不需要先理解多数据集合并逻辑，也能直接开练。
 - `policy.type`
   - `act` 或 `diffusion`。
+  - ACT 是更推荐的第一站，因为训练逻辑更直观，速度通常也更快。
+  - Diffusion Policy 更适合在你已经跑通 ACT baseline 后再继续比较。
 - `policy.device`
   - 训练建议 `cuda`。
+  - 因为图像编码器和策略网络都比较重，CPU 训练几乎没有效率。
 - `input_features`
   - baseline 推荐 `observation.state + top/left/right RGB`。
+  - 这是一个工程上很稳妥的起点。
+  - `state` 提供机械臂关节信息，RGB 提供布料形态和位姿信息。
+  - 对学习者来说，这个组合也最容易理解：一部分是“机器人自己当前姿态”，一部分是“摄像头看到的场景”。
 - `output_features`
   - baseline 推荐输出 `action`。
+  - 也就是直接预测关节动作。
+  - 这种 joint-space control 比 `ee_pose` 更适合作为教学 baseline，因为它少了一层 IK 误差。
 - `output_dir`
   - 已改到数据盘，例如 `/root/gpufree-data/lehome-outputs/train/act_top_long`。
+  - 这样做是为了避免把系统盘写满。
 - `batch_size`
   - 和显存直接相关。
   - ACT 当前建议 `16`，DP 当前建议 `8`。
+  - 对初学者可以简单理解为：一次喂给模型多少条训练样本。
+  - 越大通常训练越快，但显存占用也越高。
 - `steps`
   - 总训练步数。
   - ACT 可先跑 `30000`，DP 建议更长，教程配置里给到 `90000`。
+  - 训练步数不是“越大越好”，而是“足够看到收敛趋势”。
+  - 教学上先用一个可跑完、可观察的步数更重要。
 - `save_freq`
   - checkpoint 保存间隔。
   - 教程里调高了保存频率，便于中间结果回看。
+  - 这对教学尤其重要，因为你可以比较不同阶段 checkpoint 的效果，而不是只看最后一个模型。
 - `log_freq`
   - 日志打印频率。
   - 教程里调高到更细，方便后续画图和排障。
+  - 对学习者来说，训练日志就是最直观的“训练过程观察窗口”。
 - `eval_freq`
   - 训练中的阶段性评估间隔。
   - 便于观察并不是只有 loss 在变化。
+  - 如果一个模型 loss 在下降，但 eval success rate 不涨，这通常意味着“学到了训练分布内拟合”，但未必真正学会了任务。
+
+## 3.8.1 为什么 ACT 和 DP 的参数不一样
+
+这是很多学习者第一次会问的问题。
+
+### ACT
+
+ACT 可以先理解成“基于视觉和状态做动作序列预测”的 transformer 类策略。
+
+在本教程里，我们给 ACT 这样一组较保守的参数：
+
+- `batch_size: 16`
+- `steps: 30000`
+- `save_freq: 5000`
+- `log_freq: 200`
+- `eval_freq: 5000`
+
+这样设计的目的：
+
+- 比较容易在单卡上跑起来
+- 日志足够细，便于教学观察
+- 每隔 `5000` step 就能拿到一个 checkpoint
+- 总步数 `30000` 足够看到一个 baseline 的基本收敛趋势
+
+### Diffusion Policy
+
+Diffusion Policy 的推理和训练都更重，尤其在多相机输入下更明显。
+
+教程配置里我们给了：
+
+- `batch_size: 8`
+- `steps: 90000`
+- `save_freq: 10000`
+- `log_freq: 100`
+- `eval_freq: 10000`
+
+这样设计的目的：
+
+- 降低显存压力
+- 延长训练步数，给 diffusion 模型足够的收敛空间
+- 用更细的日志频率观察 loss 和 gradient norm
+
+所以不要机械地认为“ACT 和 DP 的参数应该一样”。不同策略结构，本来就应该有不同的训练节奏。
+
+## 3.8.2 训练要跑多久，显存大概多少
+
+这里给的是经验预估，不是绝对值。
+
+在当前这类 `top_long_merged + state + 3路RGB` 配置下，可以先这样估算：
+
+### ACT
+
+- 推荐显存：至少 `16GB`，更稳妥是 `24GB+`
+- 在 L40 这类卡上通常可以单卡训练
+- `30000 step` 一般是“小时级”任务，不是分钟级
+- 如果日志里 `data_s` 和 `updt_s` 都不大，通常几个小时内能看到完整 baseline 结果
+
+### DP
+
+- 推荐显存：`24GB+` 更稳
+- `90000 step` 通常明显比 ACT 更久
+- 更适合作为过夜训练任务
+
+学习者应该关心的是：
+
+- 有没有 OOM
+- 每 step 花多久
+- loss 是否稳定下降
+- 中间 checkpoint 的 eval 是否真的变好
+
+不要一上来纠结“到底 3 小时还是 5 小时”，先看自己机器日志里的：
+
+- `updt_s`
+- `data_s`
+- `step_per_sec`
+
+这些值才是真正决定训练时间的依据。
+
+## 3.8.3 第一次训练建议怎么做
+
+推荐按下面顺序学：
+
+1. 先训练 ACT，不要先上 DP。
+2. 不要先加 depth。
+3. 不要先改成 `ee_pose`。
+4. 先跑通一个类别，比如 `top_long_merged`。
+5. 先观察 loss、grad norm、lr 和中间 eval。
+6. 确认 pipeline 稳定以后，再扩大到更多类别。
 
 ## 3.9 建议保留的训练中间结果
 
@@ -261,6 +372,13 @@ python -m scripts.eval \
 - 训练曲线图
 - 训练指标 CSV / JSON 摘要
 - 若有阶段性 eval，也保留对应日志和视频
+
+对于教学用途，还建议加上：
+
+- 一张训练曲线截图
+- 一份“最佳 checkpoint”和“最后 checkpoint”的对比结论
+- 一份训练耗时记录
+- 一份显存占用记录
 
 建议统一放到：
 
@@ -301,6 +419,21 @@ python /root/gpufree-data/every-embodied/15-Challenge竞赛/LeHome/resources/scr
 - `data_s`
 - `step_per_sec`
 
+这些指标的教学意义分别是：
+
+- `loss`
+  - 最基础的优化目标，先看是否整体下降。
+- `grdn`
+  - 用来看梯度是否爆炸或异常不稳定。
+- `lr`
+  - 用来看学习率调度是否正常。
+- `updt_s`
+  - 单步参数更新耗时。
+- `data_s`
+  - 单步数据加载耗时。
+- `step_per_sec`
+  - 训练吞吐量的直观指标。
+
 ## 3.11 除了 loss，还建议看哪些指标
 
 如果站在 ACT / Diffusion Policy 论文复现和工程训练角度，除了 loss，还建议尽量记录：
@@ -323,6 +456,44 @@ python /root/gpufree-data/every-embodied/15-Challenge竞赛/LeHome/resources/scr
 2. `gradient norm` 是否异常爆炸
 3. `lr` 调度是否正常
 4. 中间 checkpoint 的 `eval success rate` 是否同步提升
+
+## 3.12 训练结束后会保存什么
+
+训练完成后，通常最值得关注的是这些内容：
+
+- `train.log`
+  - 原始训练日志
+- `checkpoints/`
+  - 每个阶段保存下来的模型
+- `last/`
+  - 最后一次训练状态
+- `pretrained_model/`
+  - 用于评测和部署的模型目录
+- 你自己生成的：
+  - `train_metrics.csv`
+  - `train_metrics_summary.json`
+  - `train_metrics.png`
+
+从教学角度，建议把这些文件分成两类理解：
+
+### 第一类：训练产物
+
+- checkpoint
+- last
+- pretrained_model
+
+这些是“模型本身”。
+
+### 第二类：训练证据
+
+- train.log
+- 指标 CSV/JSON
+- 曲线图
+- 中间 eval 结果
+
+这些是“为什么我们认为这个模型训练正常”的证据。
+
+教学里两类都要保留，不能只保留模型文件。
 
 如果后续你要再往上加，我建议优先补：
 

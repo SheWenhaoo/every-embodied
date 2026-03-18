@@ -55,5 +55,5 @@
 
 ## 相关入口
 
-- 乐云平台：[达摩开发者矩阵](https://developer.damo-academy.com/platform)
+- 乐云平台：[达摩开发者矩阵](https://developer.damo-academy.com/playground?spm=a1z26upx.zdxx.0.0&from=zdxx)
 - Every-Embodied 仓库主入口：[README](../../README.md)

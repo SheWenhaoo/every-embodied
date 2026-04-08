@@ -173,6 +173,7 @@
 | **第三阶段** | 模仿学习、大模型(VLA/VLN)、Sim2Real | 复现大模型导航VLN、OpenVLA、SmolVLA 等前沿项目，实现仿真或真实部署 |
 
   ## 🔥 News & Highlights
+  - **[2025-04-07]** 新增LeWorldModel世界模型教程和复现指导！用最通俗的话、最清晰的结构，把LeWM从头到尾讲明白，一步到位带你吃透最新的LeWM世界模型算法，不管是入门世界模型还是深入科研都能用
   - **[2025-03-17]** 新增具身导航综合入门实践视频教程！仅需“半天”即可走通从感知决策再到规划控制的所有的算法：从入门具身导航到深入研究一站式
   - **[2025-03-17]** 新增视频教程：LeHome柔性衣物折叠ICRA2026比赛视频教程 http://xhslink.com/o/2oxCz0RTXcA
   - **[2025-03-16]** 新增达摩院 x Datawhale 组队学习 https://github.com/datawhalechina/every-embodied/tree/main/16-%E4%B8%93%E9%A2%98%E7%BB%84%E9%98%9F%E5%AD%A6%E4%B9%A0/01-%E8%BE%BE%E6%91%A9%E9%99%A2%E7%BB%84%E9%98%9F%E5%AD%A6%E4%B9%A0

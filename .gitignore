@@ -199,3 +199,7 @@ datawhale_eai_pnp_language
 # Local ebook web app dependencies
 node_modules/
 artifacts/
+
+# Keep ebook web shared logic tracked
+!web/lib/
+!web/lib/*.js

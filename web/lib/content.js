@@ -17,6 +17,7 @@ const collator = new Intl.Collator("zh-Hans-CN", {
 const hiddenOrGeneratedDirs = new Set([
   ".git",
   ".github",
+  ".specstory",
   "node_modules",
   "web",
   "dist",
@@ -29,6 +30,8 @@ const supportingDocDirs = new Set([
   "images",
   "resources",
   "external-libraries",
+  "code",
+  "代码",
 ]);
 
 const projectAssetMap = {
@@ -301,6 +304,17 @@ function formatSegmentTitle(segment) {
     .trim();
 }
 
+function formatDocTitle(segment) {
+  const withoutExt = segment.replace(/\.md$/i, "");
+  const withoutOrder = withoutExt
+    // Drop file-order prefixes such as 01Foo, 02-Foo, 03_Foo, but keep names
+    // such as "1X 世界模型挑战" where the digit is part of the project name.
+    .replace(/^(\d{2,})(?:[-_\s.、]*)/, "")
+    .replace(/^(\d{1,2})[-_\s.、]+/, "")
+    .trim();
+  return (withoutOrder || withoutExt).replace(/_/g, " ").replace(/\s+/g, " ").trim();
+}
+
 function titleFromPath(relPath) {
   const parts = relPath.split("/");
   const filename = parts[parts.length - 1];
@@ -308,7 +322,7 @@ function titleFromPath(relPath) {
     if (parts.length === 1) return "项目首页";
     return formatSegmentTitle(parts[parts.length - 2]);
   }
-  return formatSegmentTitle(filename);
+  return formatDocTitle(filename);
 }
 
 function extractHeadingTitle(markdown) {
@@ -607,7 +621,10 @@ async function collectCatalog(options = {}) {
     if (!hasChineseText(markdown)) continue;
 
     const group = groupForDoc(relPath);
-    const title = extractHeadingTitle(markdown) || titleFromPath(relPath);
+    const isReadme = /(^|\/)readme\.md$/i.test(relPath);
+    const title = isReadme
+      ? extractHeadingTitle(markdown) || titleFromPath(relPath)
+      : titleFromPath(relPath) || extractHeadingTitle(markdown);
     docs.push({
       id: idFromRel(relPath),
       relPath,
